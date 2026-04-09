@@ -1,0 +1,7 @@
+{
+  "rabbit_version": "3.13.0",
+  "vhosts": [{"name": "/"}],
+  "exchanges": [{"name": "calculator.events", "vhost": "/", "type": "topic", "durable": false}],
+  "queues": [{"name": "calculator.audit", "vhost": "/", "durable": false}],
+  "bindings": [{"source": "calculator.events", "vhost": "/", "destination": "calculator.audit", "destination_type": "queue", "routing_key": "calculation.*", "arguments": {}}]
+}

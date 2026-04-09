@@ -1,0 +1,11 @@
+body { margin: 0; font-family: Arial, sans-serif; background: #2f2f2f; color: #111; }
+.screen { display: flex; gap: 24px; padding: 24px; min-height: 100vh; align-items: flex-start; }
+.calculator { background: #d9d9d9; padding: 20px; border-radius: 14px; box-shadow: 0 6px 16px rgba(0,0,0,.35); width: 320px; }
+.lcd { background: linear-gradient(#86c59a, #76b58d); border: 2px inset #4b7355; min-height: 56px; margin-bottom: 12px; font-size: 2rem; padding: 8px 12px; letter-spacing: 2px; }
+.lcd[data-state='error'] { color: #a31515; }
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+button { border: none; border-radius: 8px; padding: 12px; background: #fff; font-weight: 600; cursor: pointer; }
+button.ac { background: #ff8a3c; }
+button.equals { grid-column: span 2; background: #111; color: #fff; }
+.error { color: #9f1717; margin-bottom: 8px; font-weight: 700; }
+.telemetry { background: #f2f2f2; border-radius: 10px; padding: 12px; min-width: 320px; }

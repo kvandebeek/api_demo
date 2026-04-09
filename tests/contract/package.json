@@ -1,0 +1,14 @@
+{
+  "name": "@qa/contract-tests",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@qa/event-contracts": "0.1.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.coverage
+.pytest_cache/
+__pycache__/
+playwright-report/
+test-results/
+artifacts/*.pdf
+.env
+*.log

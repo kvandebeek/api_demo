@@ -1,0 +1,17 @@
+{
+  "profile-basic": {
+    "BUG_DIGIT_9_DISABLED": true,
+    "BUG_DIVISION_ALWAYS_RETURNS_2": false,
+    "BUG_DOUBLE_EQUALS_SHOWS_ERROR": false
+  },
+  "profile-regression": {
+    "BUG_DIGIT_9_DISABLED": false,
+    "BUG_DIVISION_ALWAYS_RETURNS_2": true,
+    "BUG_DOUBLE_EQUALS_SHOWS_ERROR": true
+  },
+  "profile-chaos-lite": {
+    "BUG_DIGIT_9_DISABLED": true,
+    "BUG_DIVISION_ALWAYS_RETURNS_2": true,
+    "BUG_DOUBLE_EQUALS_SHOWS_ERROR": true
+  }
+}
