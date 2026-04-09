@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  api-service:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -lc "npm install && npm --workspace services/api-service run dev"
+    ports:
+      - "3001:3001"
+    env_file: .env
+    depends_on:
+      - rabbitmq
+
+  web-ui:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -lc "npm install && npm --workspace apps/web-ui run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    env_file: .env
+    depends_on:
+      - api-service
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+
+  activemq:
+    image: apache/activemq-classic:6.1.5
+    ports:
+      - "61616:61616"
+      - "8161:8161"

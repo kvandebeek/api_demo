@@ -1,0 +1,21 @@
+{
+  "name": "qa-training-calculator",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*",
+    "tests/*"
+  ],
+  "scripts": {
+    "build": "npm run build -ws --if-present",
+    "test": "npm run test -ws --if-present",
+    "lint": "npm run lint -ws --if-present",
+    "dev:web": "npm --workspace apps/web-ui run dev",
+    "dev:api": "npm --workspace services/api-service run dev",
+    "test:web:e2e": "npm --workspace apps/web-ui run test:e2e",
+    "test:api": "npm --workspace services/api-service run test",
+    "report:pdf": "python3 services/report-service/generate_report.py"
+  }
+}
