@@ -4,7 +4,7 @@
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx src/server.ts",
+    "dev": "npm run build --workspace @qa/calc-engine --workspace @qa/event-contracts && tsx src/server.ts",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
