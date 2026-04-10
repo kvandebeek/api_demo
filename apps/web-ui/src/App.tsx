@@ -8,7 +8,29 @@ const buttons = [
   '0', '.', '='
 ];
 
+const VALID_CHARS = /^[0-9+\-*/().\s]+$/;
+
 const apiBase = (import.meta.env.VITE_API_BASE_URL as string) ?? 'http://localhost:3001';
+
+function evaluateLocally(expression: string): number {
+  const trimmed = expression.trim();
+  if (!trimmed) throw new Error('Expression is required.');
+  if (!VALID_CHARS.test(trimmed)) throw new Error('Invalid characters in expression.');
+
+  const safe = trimmed
+    .replace(/\s+/g, '')
+    .replace(/(\d)(\()/g, '$1*(')
+    .replace(/(\))(\d)/g, ')*$2');
+
+  if (/\/0(?!\d)/.test(safe)) throw new Error('Division by zero is not allowed.');
+
+  const value = Function(`"use strict"; return (${safe});`)();
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error('Expression did not produce a finite number.');
+  }
+
+  return value;
+}
 
 export function App() {
   const [display, setDisplay] = useState('0');
@@ -40,13 +62,21 @@ export function App() {
           body: JSON.stringify({ expression: display })
         });
 
+        if (!response.ok) throw new Error('API calculation failed.');
+
         const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error ?? 'Unknown API error');
+        if (typeof payload.result !== 'number') throw new Error('Invalid API response.');
+
         setDisplay(String(payload.result));
         setLastAction('equals');
-      } catch (e) {
-        setDisplay('ERROR');
-        setError((e as Error).message);
+      } catch {
+        try {
+          setDisplay(String(evaluateLocally(display)));
+          setLastAction('equals');
+        } catch (e) {
+          setDisplay('ERROR');
+          setError((e as Error).message);
+        }
       }
       return;
     }
