@@ -7,12 +7,12 @@ import { createPublisher } from './events.js';
 
 const requestSchema = z.object({ expression: z.string().min(1) });
 
-export function createApp() {
+export async function createApp() {
   const app = express();
   app.use(express.json());
-  const publisher = createPublisher();
+  const publisher = await createPublisher();
 
-  app.get('/health', (_req, res) => res.json({ ok: true, broker: config.brokerProvider }));
+  app.get('/health', (_req, res) => res.json({ ok: true, broker: config.brokerProvider, amqpEnabled: config.amqpEnabled }));
 
   app.get('/debug/state', (_req, res) => {
     res.json({
@@ -30,7 +30,9 @@ export function createApp() {
 
     const expression = parsed.data.expression;
     const requested: CalculatorEvent = { type: 'calculation.requested', expression, timestamp: new Date().toISOString() };
-    await publisher.publish(requested).catch(() => undefined);
+    await publisher.publish(requested).catch((error) => {
+      console.warn('[events] Failed to publish calculation.requested', error);
+    });
 
     try {
       const result = evaluateExpression(expression, config.flags);
@@ -40,7 +42,9 @@ export function createApp() {
         result: result.value,
         timestamp: new Date().toISOString()
       };
-      await publisher.publish(completed).catch(() => undefined);
+      await publisher.publish(completed).catch((error) => {
+        console.warn('[events] Failed to publish calculation.completed', error);
+      });
       return res.json({ result: result.value, expression });
     } catch (error) {
       const failed: CalculatorEvent = {
@@ -49,7 +53,9 @@ export function createApp() {
         error: (error as Error).message,
         timestamp: new Date().toISOString()
       };
-      await publisher.publish(failed).catch(() => undefined);
+      await publisher.publish(failed).catch((publishError) => {
+        console.warn('[events] Failed to publish calculation.failed', publishError);
+      });
       return res.status(422).json({ error: (error as Error).message });
     }
   });
