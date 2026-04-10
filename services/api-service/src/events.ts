@@ -8,20 +8,24 @@ export interface EventPublisher {
 }
 
 class ConsolePublisher implements EventPublisher {
+  constructor(private readonly reason: string) {}
+
   async publish(event: CalculatorEvent) {
-    console.info('event', event);
+    console.info(`[events] ${this.reason}; using console publisher`, event);
   }
 }
 
 class RabbitPublisher implements EventPublisher {
-  private connectionPromise = amqp.connect(config.rabbitUrl);
+  constructor(private readonly connection: any) {}
 
   async publish(event: CalculatorEvent) {
-    const connection = await this.connectionPromise;
-    const channel = await connection.createChannel();
-    await channel.assertExchange('calculator.events', 'topic', { durable: false });
-    channel.publish('calculator.events', event.type, Buffer.from(JSON.stringify(event)));
-    await channel.close();
+    const channel = await this.connection.createChannel();
+    try {
+      await channel.assertExchange('calculator.events', 'topic', { durable: false });
+      channel.publish('calculator.events', event.type, Buffer.from(JSON.stringify(event)));
+    } finally {
+      await channel.close();
+    }
   }
 }
 
@@ -38,9 +42,35 @@ class MqttPublisher implements EventPublisher {
   }
 }
 
-export function createPublisher(provider = config.brokerProvider): EventPublisher {
-  if (provider === 'rabbitmq') return new RabbitPublisher();
+async function connectAmqp(): Promise<any | null> {
+  if (!config.amqpEnabled) {
+    console.info('[events] AMQP disabled (set AMQP_ENABLED=true to enable broker publishing)');
+    return null;
+  }
+
+  try {
+    const connection = await amqp.connect(config.amqpUrl);
+    console.info(`[events] Connected to AMQP broker at ${config.amqpUrl}`);
+    return connection;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    const message = `[events] Failed to connect to broker at ${config.amqpUrl}: ${reason}`;
+    if (config.isLocalLikeEnv) {
+      console.warn(`${message}. Continuing without broker in ${process.env.NODE_ENV ?? 'development'}.`);
+      return null;
+    }
+    throw new Error(message);
+  }
+}
+
+export async function createPublisher(provider = config.brokerProvider): Promise<EventPublisher> {
   if (provider === 'mqtt') return new MqttPublisher();
-  if (provider === 'activemq') return new RabbitPublisher();
-  return new ConsolePublisher();
+
+  if (provider === 'rabbitmq' || provider === 'activemq') {
+    const connection = await connectAmqp();
+    if (!connection) return new ConsolePublisher('AMQP unavailable');
+    return new RabbitPublisher(connection);
+  }
+
+  return new ConsolePublisher(`unsupported broker provider '${provider}'`);
 }
